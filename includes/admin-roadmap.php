@@ -24,7 +24,7 @@ function ajcore_hoa_roadmap() {
 		'Violations' => array(
 			'Violation workflow: new, notices, hearing, fine'            => array( 'done', 'Requests > Workflows; next-step buttons, no payment needed' ),
 			'Report a violation (unit, owner, rule, photos, date)'      => array( 'planned', 'Request type with its own workflow' ),
-			'Notice letters: courtesy, first, second, final'            => array( 'planned', 'Emailed and filed to the owner\'s File Library' ),
+			'Notice letters: courtesy, first, second, final'            => array( 'planned', 'Emailed to the homeowner, or printed for mailing' ),
 			'Cure deadline and reminders'                               => array( 'planned', 'Uses Compliance reminders' ),
 			'Fines and hearing step'                                    => array( 'planned' ),
 			'Owner response and photo of the fix'                       => array( 'planned' ),
@@ -45,7 +45,7 @@ function ajcore_hoa_roadmap() {
 			'Generic Compliance feature and templates'                  => array( 'core' ),
 		),
 		'Owners and community' => array(
-			'Units and owners directory'                                => array( 'planned' ),
+			'Units and owners directory (AJ Core > HOA Homeowners)'     => array( 'done', 'Search, add, edit, CSV import and export' ),
 			'Dues and assessments'                                      => array( 'planned', 'Billing through Stripe' ),
 			'Board and meetings: agendas, minutes'                      => array( 'planned' ),
 			'Community documents: CC&Rs, rules, forms'                  => array( 'planned', 'Uses File Library' ),

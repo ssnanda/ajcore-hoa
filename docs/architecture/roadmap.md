@@ -30,11 +30,17 @@ Staff "New request" is generic and lives in AJ Core (WP admin Requests and AJOps
 
 If Gmail Intake moves back into AJ Core, HOA would add intake rules only: vendor invoice emails attach to a work order, violation reports from email become violations.
 
+## Communities and homeowners (built, directory only)
+
+Communities are AJ Core customers (use the Local type). **AJ Core > HOA Homeowners** lists the units and homeowners of each community: unit, owner, email, phone, mailing address, status (owner-occupied, rented, vacant), "OK to email", notes. Search, add, edit, bulk delete, CSV import and export. Stored in `{prefix}aj_hoa_units` on the site's WordPress database. No payments and no owner logins. Purpose: the recipient list for violation notices.
+
+Next: pick the unit when creating a violation, send the notice by email (or print a mailing letter for owners with no email), and file a copy under the community.
+
 ## Phase 1: violations
 
-1. [ ] Violation request type: unit, owner, rule broken, photos, date reported.
+1. [ ] Violation request type: unit (pick from the homeowners directory), rule broken, photos, date reported.
 2. [x] Workflow (built, class-hoa-workflows.php): New, Courtesy Notice Sent, First Notice Sent, Final Notice Sent, Hearing Scheduled, Hearing Held, Fine Issued, Resolved. "Mark Resolved (cured)" ends it early. Appears under Requests > Workflows and gives a next-step button on each request.
-3. [ ] Notice letters as email templates, filed to the owner's File Library.
+3. [ ] Notice letters: email to the homeowner (or a printable mailing letter when there is no email), copy filed to the community.
 4. [ ] Cure deadline with reminders (Compliance reminders).
 5. [ ] Owner response and a photo of the fix.
 6. [ ] Fines and a hearing step (fine amount goes onto the owner's ledger).
@@ -55,7 +61,7 @@ If Gmail Intake moves back into AJ Core, HOA would add intake rules only: vendor
 ## Phase 4: compliance and community
 
 14. [ ] HOA compliance templates: annual meeting, insurance renewal, reserve study, state filings (offered through "Start from template").
-15. [ ] Units and owners directory.
+15. [x] Units and owners directory (built: AJ Core > HOA Homeowners; letters and violation link still to do).
 16. [ ] Dues and assessments through Stripe.
 17. [ ] Board and meetings: agendas and minutes.
 18. [ ] Community documents (CC&Rs, rules, forms) in the File Library.
