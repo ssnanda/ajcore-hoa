@@ -30,11 +30,17 @@ Staff "New request" is generic and lives in AJ Core (WP admin Requests and AJOps
 
 If Gmail Intake moves back into AJ Core, HOA would add intake rules only: vendor invoice emails attach to a work order, violation reports from email become violations.
 
-## Communities and homeowners (built, directory only)
+## Communities, units and homeowners (built)
 
-Communities are AJ Core customers (use the Local type). **AJ Core > HOA Homeowners** lists the units and homeowners of each community: unit, owner, email, phone, mailing address, status (owner-occupied, rented, vacant), "OK to email", notes. Search, add, edit, bulk delete, CSV import and export. Stored in `{prefix}aj_hoa_units` on the site's WordPress database. No payments and no owner logins. Purpose: the recipient list for violation notices.
+Client Portal > **Homeowners** (next to Customers). Communities are AJ Core customers (use the Local type). Hierarchy: **community > unit > owners**.
 
-Next: pick the unit when creating a violation, send the notice by email (or print a mailing letter for owners with no email), and file a copy under the community.
+- A unit has one or more **current owners** (a group of owners), each with a start date, contact, mailing address and "OK to email".
+- **Record a sale:** current owners get an end date and move to **Previous owners**; the new owners start on the sale date.
+- **Violations belong to the unit**, not the owner. "New violation" on a unit creates a Violation request and links it to the unit, with a note of who owned it at the time. A unit with violation history can't be deleted.
+- Search, CSV import (one row per owner; repeat the unit for co-owners) and export.
+- Tables on the site's WordPress database: `aj_hoa_properties`, `aj_hoa_owners`, `aj_hoa_unit_requests`. No payments, no owner logins.
+
+Next: send the violation notice to the unit's current owners (email, or a printable mailing letter for owners without email), and file a copy under the community.
 
 ## Phase 1: violations
 
@@ -61,7 +67,7 @@ Next: pick the unit when creating a violation, send the notice by email (or prin
 ## Phase 4: compliance and community
 
 14. [ ] HOA compliance templates: annual meeting, insurance renewal, reserve study, state filings (offered through "Start from template").
-15. [x] Units and owners directory (built: AJ Core > HOA Homeowners; letters and violation link still to do).
+15. [x] Units and owners directory with ownership history (built: Client Portal > Homeowners).
 16. [ ] Dues and assessments through Stripe.
 17. [ ] Board and meetings: agendas and minutes.
 18. [ ] Community documents (CC&Rs, rules, forms) in the File Library.

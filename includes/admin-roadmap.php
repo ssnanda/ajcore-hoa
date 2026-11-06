@@ -45,7 +45,8 @@ function ajcore_hoa_roadmap() {
 			'Generic Compliance feature and templates'                  => array( 'core' ),
 		),
 		'Owners and community' => array(
-			'Units and owners directory (AJ Core > HOA Homeowners)'     => array( 'done', 'Search, add, edit, CSV import and export' ),
+			'Units, owners and ownership history (Client Portal > Homeowners)' => array( 'done', 'Co-owners, sales, previous owners, CSV' ),
+			'Violations linked to the unit'                             => array( 'done', 'Stay with the property across owners' ),
 			'Dues and assessments'                                      => array( 'planned', 'Billing through Stripe' ),
 			'Board and meetings: agendas, minutes'                      => array( 'planned' ),
 			'Community documents: CC&Rs, rules, forms'                  => array( 'planned', 'Uses File Library' ),
