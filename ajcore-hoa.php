@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       AJ Core HOA
  * Description:       Homeowners association extension for AJ Core. Requires the AJ Core plugin. Request workflows (violation; work order to invoice to accounts payable) are active; the rest is roadmap.
- * Version:           0.1.3
+ * Version:           0.1.4
  * Requires PHP:      7.4
  * Author:            IT Spector LLC
  * Author URI:        https://itspector.com
@@ -15,7 +15,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'AJCORE_HOA_VERSION', '0.1.3' );
+define( 'AJCORE_HOA_VERSION', '0.1.4' );
 // Lowest AJCore extension API this plugin works with (see AJCORE_EXTENSION_API in AJCore).
 define( 'AJCORE_HOA_MIN_EXTENSION_API', 24 );
 define( 'AJCORE_HOA_BASENAME', plugin_basename( __FILE__ ) );

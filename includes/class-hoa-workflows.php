@@ -28,6 +28,7 @@ class AJCore_HOA_Workflows {
 		add_filter( 'ajcore_service_request_product_type', array( __CLASS__, 'product_type' ), 20, 3 );
 		add_filter( 'ajcore_service_request_quick_actions', array( __CLASS__, 'quick_actions' ), 10, 4 );
 		add_filter( 'ajcore_service_request_action_map', array( __CLASS__, 'action_map' ) );
+		add_filter( 'ajcore_service_request_types', array( __CLASS__, 'request_types' ) );
 	}
 
 	/** Step key => display name. */
@@ -83,6 +84,13 @@ class AJCore_HOA_Workflows {
 	/** Quick-action key for moving a request to a step (hoa_to_courtesy_notice, hoa_to_completed). */
 	private static function action_key( $step ) {
 		return 'hoa_to_' . preg_replace( '/^hoa_/', '', (string) $step );
+	}
+
+	/** Types offered in New request. */
+	public static function request_types( $types ) {
+		$types[ self::VIOLATION ]  = __( 'Violation', 'ajcore-hoa' );
+		$types[ self::WORK_ORDER ] = __( 'Work order to invoice to accounts payable', 'ajcore-hoa' );
+		return $types;
 	}
 
 	public static function status_labels( $labels ) {

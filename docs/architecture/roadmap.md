@@ -22,6 +22,14 @@ D4. [ ] Capabilities endpoint and AJOps site switcher, so AJOps can show an HOA 
 
 A request uses a workflow when its request type is `hoa_violation` or `hoa_work_order_invoice`, or when its name contains "violation" (violations) or "work order", "repair" or "maintenance" (work orders). There is no HOA request-creation screen yet, so for now create or name requests that way. Status keys are prefixed `hoa_`. Needs AJ Core with the request workflow filters (ajcore_service_status_labels, _pipelines, ajcore_service_workflow_labels, ajcore_service_request_product_type, _quick_actions, _action_map).
 
+## Request creation
+
+Staff "New request" is generic and lives in AJ Core (WP admin Requests and AJOps Requests). HOA supplies the types (Violation, Work order to invoice to accounts payable) through the `ajcore_service_request_types` filter. Still planned: forms that create a request on submit, and the portal "Submit a New Request" with a type picker.
+
+## Gmail Intake (idea, not decided)
+
+If Gmail Intake moves back into AJ Core, HOA would add intake rules only: vendor invoice emails attach to a work order, violation reports from email become violations.
+
 ## Phase 1: violations
 
 1. [ ] Violation request type: unit, owner, rule broken, photos, date reported.
