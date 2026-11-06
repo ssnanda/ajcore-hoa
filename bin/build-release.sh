@@ -11,7 +11,7 @@ PLUGIN_FILE="$ROOT_DIR/ajcore-hoa.php"
 GITHUB_REPO="ssnanda/ajcore-hoa"
 TAG_PREFIX="v"
 SITES_ROOT="/Users/sandip/Projects/sites"
-DEPLOY_SITES=(ncllc upos)   # ncllc.ddev.site, upos.ddev.site
+DEPLOY_SITES=(wozig)   # wozig.ddev.site only: this extension does not belong on ncllc or upos
 
 GITHUB_RELEASE="true"
 GIT_COMMIT="true"
@@ -22,7 +22,7 @@ usage() {
 Usage: ./bin/build-release.sh [options]
 
 Flow: choose version bump -> build zip -> git commit -> tag + push ->
-GitHub release -> install into local sites ncllc and upos.
+GitHub release -> install into the local wozig site only.
 
 Options:
   --version X.Y.Z | --bump patch|minor|major | --no-bump
