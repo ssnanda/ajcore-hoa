@@ -22,6 +22,7 @@ function ajcore_hoa_add_roadmap_menu() {
 function ajcore_hoa_roadmap() {
 	return array(
 		'Violations' => array(
+			'Violation workflow: new, notices, hearing, fine'            => array( 'done', 'Requests > Workflows; next-step buttons, no payment needed' ),
 			'Report a violation (unit, owner, rule, photos, date)'      => array( 'planned', 'Request type with its own workflow' ),
 			'Notice letters: courtesy, first, second, final'            => array( 'planned', 'Emailed and filed to the owner\'s File Library' ),
 			'Cure deadline and reminders'                               => array( 'planned', 'Uses Compliance reminders' ),
@@ -29,8 +30,8 @@ function ajcore_hoa_roadmap() {
 			'Owner response and photo of the fix'                       => array( 'planned' ),
 		),
 		'Requests and invoices' => array(
-			'Repair / maintenance request workflow'                     => array( 'planned', 'Request, vendor assigned, work done, pending vendor receipt, payment, closed' ),
-			'Vendor invoice workflow'                                   => array( 'planned', 'Received, board approval over a set amount, paid' ),
+			'Work order to invoice to accounts payable workflow'        => array( 'done', 'Vendor assigned through invoice received, approved, in accounts payable, paid, closed' ),
+			'Board approval step above a set amount'                    => array( 'planned', 'Extra step in the work order workflow' ),
 			'Architectural change request (ARC)'                        => array( 'planned', 'Submit, committee review, approved or denied' ),
 			'Generic Requests engine and invoice template'              => array( 'core', 'In AJ Core; HOA adds its own variants' ),
 		),
@@ -91,7 +92,7 @@ function ajcore_hoa_render_roadmap_page() {
 	);
 
 	echo '<div class="wrap"><h1>' . esc_html__( 'AJCore HOA', 'ajcore-hoa' ) . ' <small>' . esc_html( AJCORE_HOA_VERSION ) . '</small></h1>';
-	echo '<p style="font-size:14px"><strong>' . esc_html( sprintf( '%d of %d built', $done, $total ) ) . '</strong> · ' . esc_html__( 'Roadmap only: nothing here is active yet. Details: docs/architecture/roadmap.md', 'ajcore-hoa' ) . '</p>';
+	echo '<p style="font-size:14px"><strong>' . esc_html( sprintf( '%d of %d built', $done, $total ) ) . '</strong> · ' . esc_html__( 'Two request workflows are active; the rest is planned. Details: docs/architecture/roadmap.md', 'ajcore-hoa' ) . '</p>';
 	echo '<table class="widefat" style="max-width:820px;font-size:14px"><tbody>';
 	foreach ( $groups as $group => $features ) {
 		echo '<tr><th colspan="2" style="background:#1d2327;color:#fff;padding:8px 12px">' . esc_html( $group ) . '</th></tr>';

@@ -2,7 +2,7 @@
 
 Created 2026-11-06. Numbers are stable; do not renumber.
 
-AJCore HOA is a private extension for the wozig.com site (AJ Core + AJ Core HOA, no AJOps today). **Version 0.1.0 is a roadmap only**: it registers with AJ Core, shows this plan under AJ Core > AJCore HOA, and does nothing else.
+AJCore HOA is a private extension for the wozig.com site (AJ Core + AJ Core HOA, no AJOps today). The plugin registers with AJ Core, shows this plan under AJ Core > AJCore HOA, and ships two request workflows (below). Everything else is still planned.
 
 ## How it fits
 
@@ -18,10 +18,14 @@ D2. [ ] Workflow editing in the UI (workflows stored in the database instead of 
 D3. [ ] Generic invoice workflow template (Received, Approved, Paid; vendor, amount, due date, attachments, payment method).
 D4. [ ] Capabilities endpoint and AJOps site switcher, so AJOps can show an HOA module for wozig.
 
+## How a request picks its workflow
+
+A request uses a workflow when its request type is `hoa_violation` or `hoa_work_order_invoice`, or when its name contains "violation" (violations) or "work order", "repair" or "maintenance" (work orders). There is no HOA request-creation screen yet, so for now create or name requests that way. Status keys are prefixed `hoa_`. Needs AJ Core with the request workflow filters (ajcore_service_status_labels, _pipelines, ajcore_service_workflow_labels, ajcore_service_request_product_type, _quick_actions, _action_map).
+
 ## Phase 1: violations
 
 1. [ ] Violation request type: unit, owner, rule broken, photos, date reported.
-2. [ ] Workflow: reported, courtesy notice, first notice, second notice, final notice, hearing, fine, resolved or closed.
+2. [x] Workflow (built, class-hoa-workflows.php): New, Courtesy Notice Sent, First Notice Sent, Final Notice Sent, Hearing Scheduled, Hearing Held, Fine Issued, Resolved. "Mark Resolved (cured)" ends it early. Appears under Requests > Workflows and gives a next-step button on each request.
 3. [ ] Notice letters as email templates, filed to the owner's File Library.
 4. [ ] Cure deadline with reminders (Compliance reminders).
 5. [ ] Owner response and a photo of the fix.
@@ -29,8 +33,8 @@ D4. [ ] Capabilities endpoint and AJOps site switcher, so AJOps can show an HOA 
 
 ## Phase 2: requests and invoices
 
-7. [ ] Repair / maintenance request workflow: request, vendor assigned, work done, pending vendor receipt, payment, closed.
-8. [ ] Vendor invoice workflow variant: received, board approval above a set amount, paid.
+7. [x] Work order to invoice to accounts payable workflow (built): New, Vendor Assigned, Work In Progress, Work Complete, Invoice Received, Invoice Approved, In Accounts Payable, Paid, Closed.
+8. [ ] Board approval step above a set dollar amount, added to the work order workflow.
 9. [ ] Architectural change request (ARC): submit, committee review, approved or denied, with the decision letter filed.
 10. [ ] Vendors list (contact, insurance on file, W-9).
 

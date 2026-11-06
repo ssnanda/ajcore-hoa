@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       AJ Core HOA
- * Description:       Homeowners association extension for AJ Core. Requires the AJ Core plugin. Currently a roadmap only: no features are active yet.
- * Version:           0.1.2
+ * Description:       Homeowners association extension for AJ Core. Requires the AJ Core plugin. Request workflows (violation; work order to invoice to accounts payable) are active; the rest is roadmap.
+ * Version:           0.1.3
  * Requires PHP:      7.4
  * Author:            IT Spector LLC
  * Author URI:        https://itspector.com
@@ -15,12 +15,13 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'AJCORE_HOA_VERSION', '0.1.2' );
+define( 'AJCORE_HOA_VERSION', '0.1.3' );
 // Lowest AJCore extension API this plugin works with (see AJCORE_EXTENSION_API in AJCore).
 define( 'AJCORE_HOA_MIN_EXTENSION_API', 24 );
 define( 'AJCORE_HOA_BASENAME', plugin_basename( __FILE__ ) );
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/admin-roadmap.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-workflows.php';
 
 /**
  * Plugins load alphabetically by path ("ajcore-hoa/" sorts before "ajcore/"), so AJCore isn't loaded yet
@@ -40,6 +41,8 @@ function ajcore_hoa_boot() {
 			'diagnostics' => 'ajcore_hoa_diagnostics',
 		)
 	);
+
+	AJCore_HOA_Workflows::init();
 }
 add_action( 'plugins_loaded', 'ajcore_hoa_boot' );
 
@@ -60,6 +63,6 @@ function ajcore_hoa_missing_core_notice() {
 function ajcore_hoa_diagnostics() {
 	return array(
 		'Extension API' => ( defined( 'AJCORE_EXTENSION_API' ) ? AJCORE_EXTENSION_API : '?' ) . ' (min ' . AJCORE_HOA_MIN_EXTENSION_API . ')',
-		'Status'        => 'Roadmap only, no features active',
+		'Status'        => 'Workflows: violation, work order to invoice to accounts payable. Rest is roadmap',
 	);
 }
