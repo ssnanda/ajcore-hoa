@@ -40,6 +40,8 @@ Client Portal > **Homeowners** (next to Customers). Communities are AJ Core cust
 - Search, CSV import (one row per owner; repeat the unit for co-owners) and export.
 - Tables on the site's WordPress database: `aj_hoa_properties`, `aj_hoa_owners`, `aj_hoa_unit_requests`. No payments, no owner logins.
 
+Read-only REST for AJOps and the iOS app: `GET /ops/hoa/communities`, `/ops/hoa/communities/{id}`, `/ops/hoa/units/{id}` (class-hoa-rest.php). AJOps shows Communities (cards with an occupancy ring), a unit tile grid, and a unit page with current owners, an ownership timeline and violations; the iOS app has the same under More. Editing stays in WP admin.
+
 Next: send the violation notice to the unit's current owners (email, or a printable mailing letter for owners without email), and file a copy under the community.
 
 ## Phase 1: violations

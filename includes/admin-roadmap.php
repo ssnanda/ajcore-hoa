@@ -46,6 +46,7 @@ function ajcore_hoa_roadmap() {
 		),
 		'Owners and community' => array(
 			'Units, owners and ownership history (Client Portal > Homeowners)' => array( 'done', 'Co-owners, sales, previous owners, CSV' ),
+			'Communities, units and owners in AJOps and the iOS app'    => array( 'done', 'Read-only: unit grid, ownership timeline, violations' ),
 			'Violations linked to the unit'                             => array( 'done', 'Stay with the property across owners' ),
 			'Dues and assessments'                                      => array( 'planned', 'Billing through Stripe' ),
 			'Board and meetings: agendas, minutes'                      => array( 'planned' ),
