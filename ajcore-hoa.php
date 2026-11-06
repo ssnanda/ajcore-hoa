@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       AJ Core HOA
  * Description:       Homeowners association extension for AJ Core. Requires the AJ Core plugin. Request workflows (violation; work order to invoice to accounts payable) are active; the rest is roadmap.
- * Version:           0.1.8
+ * Version:           0.1.9
  * Requires PHP:      7.4
  * Author:            IT Spector LLC
  * Author URI:        https://itspector.com
@@ -15,7 +15,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'AJCORE_HOA_VERSION', '0.1.8' );
+define( 'AJCORE_HOA_VERSION', '0.1.9' );
 // Lowest AJCore extension API this plugin works with (see AJCORE_EXTENSION_API in AJCore).
 define( 'AJCORE_HOA_MIN_EXTENSION_API', 24 );
 define( 'AJCORE_HOA_BASENAME', plugin_basename( __FILE__ ) );
@@ -24,6 +24,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/admin-roadmap.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-workflows.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-homeowners.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-rest.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-import.php';
 
 /**
  * Plugins load alphabetically by path ("ajcore-hoa/" sorts before "ajcore/"), so AJCore isn't loaded yet
@@ -47,6 +48,7 @@ function ajcore_hoa_boot() {
 	AJCore_HOA_Workflows::init();
 	AJCore_HOA_Homeowners::init();
 	AJCore_HOA_Rest::init();
+	AJCore_HOA_Import::init();
 }
 add_action( 'plugins_loaded', 'ajcore_hoa_boot' );
 
