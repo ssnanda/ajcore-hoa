@@ -29,6 +29,12 @@ class AJCore_HOA_Workflows {
 		add_filter( 'ajcore_service_request_quick_actions', array( __CLASS__, 'quick_actions' ), 10, 4 );
 		add_filter( 'ajcore_service_request_action_map', array( __CLASS__, 'action_map' ) );
 		add_filter( 'ajcore_service_request_types', array( __CLASS__, 'request_types' ) );
+		// Owners and community members are not Stripe customers by default.
+		add_filter( 'ajcore_default_customer_billing_type', array( __CLASS__, 'default_customer_type' ) );
+	}
+
+	public static function default_customer_type() {
+		return 'local';
 	}
 
 	/** Step key => display name. */
