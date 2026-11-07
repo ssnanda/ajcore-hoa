@@ -42,6 +42,10 @@ Client Portal > **Homeowners** (next to Customers). Communities are AJ Core cust
 
 Read-only REST for AJOps and the iOS app: `GET /ops/hoa/communities`, `/ops/hoa/communities/{id}`, `/ops/hoa/units/{id}` (class-hoa-rest.php). AJOps shows Communities (cards with an occupancy ring), a unit tile grid, and a unit page with current owners, an ownership timeline and violations; the iOS app has the same under More. Editing stays in WP admin.
 
+Spreadsheet import and refresh (class-hoa-import.php, AJOps Communities > Import / refresh): PayHOA export or any CSV/Excel into one community. Always previews first. Modes: Add only (never changes existing data) and Update (refreshes contacts; owners no longer listed move to previous owners dated today). Owners are matched inside a unit by full name, last name + first initial, email, phone, last name + mailing address, or the sole-owner same-last-name rule (shown as "Renamed" in the preview). Several names in one cell ("John & Jane Smith") become several owners. The PayHOA column aliases are a first guess; refine them against a real export (`sources()` in the class).
+
+Inspections (iOS app): photo, GPS address (editable), violation type; saved on the phone and uploaded in the background; discovery mode shows violations already on file for the address you are standing at.
+
 Next: send the violation notice to the unit's current owners (email, or a printable mailing letter for owners without email), and file a copy under the community.
 
 ## Phase 1: violations

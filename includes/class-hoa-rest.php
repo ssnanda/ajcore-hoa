@@ -7,6 +7,7 @@
  *   GET /ops/hoa/communities/{id}         one community with its units and current owners
  *   GET /ops/hoa/units/{id}               one unit: current owners, previous owners, violations
  *   GET /ops/hoa/violation-types          violation types offered when inspecting (filter ajcore_hoa_violation_types)
+ *   GET /ops/hoa/address-violations       what is already on file for an address (inspection "discovery")
  *   POST /ops/hoa/inspections             one inspection finding from the app: photo + address + type -> Violation request
  */
 
@@ -51,6 +52,7 @@ class AJCore_HOA_Rest {
 		register_rest_route( $ns, '/ops/hoa/communities', array( 'methods' => WP_REST_Server::READABLE, 'callback' => array( __CLASS__, 'communities' ), 'permission_callback' => $ops ) );
 		register_rest_route( $ns, '/ops/hoa/communities/(?P<id>[A-Za-z0-9_\-]+)', array( 'methods' => WP_REST_Server::READABLE, 'callback' => array( __CLASS__, 'community' ), 'permission_callback' => $ops ) );
 		register_rest_route( $ns, '/ops/hoa/violation-types', array( 'methods' => WP_REST_Server::READABLE, 'callback' => array( __CLASS__, 'violation_types' ), 'permission_callback' => $ops ) );
+		register_rest_route( $ns, '/ops/hoa/address-violations', array( 'methods' => WP_REST_Server::READABLE, 'callback' => array( __CLASS__, 'address_violations' ), 'permission_callback' => $ops ) );
 		register_rest_route( $ns, '/ops/hoa/inspections', array( 'methods' => WP_REST_Server::CREATABLE, 'callback' => array( __CLASS__, 'create_inspection' ), 'permission_callback' => $ops ) );
 		register_rest_route( $ns, '/ops/hoa/units/(?P<id>\d+)', array( 'methods' => WP_REST_Server::READABLE, 'callback' => array( __CLASS__, 'unit' ), 'permission_callback' => $ops ) );
 	}
@@ -229,6 +231,89 @@ class AJCore_HOA_Rest {
 		return rest_ensure_response( array( 'types' => array_values( array_filter( array_map( 'sanitize_text_field', (array) $types ) ) ) ) );
 	}
 
+	/** Unit of the community whose stored address matches the street of $address (first comma part), or null. */
+	private static function find_unit( $community, $address ) {
+		global $wpdb;
+		$street = self::norm_address( explode( ',', (string) $address )[0] );
+		if ( '' === $street ) {
+			return null;
+		}
+		foreach ( (array) $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM ' . self::t( 'properties' ) . " WHERE community_id = %s AND address <> ''", $community ) ) as $p ) { // phpcs:ignore WordPress.DB.PreparedSQL
+			$a = self::norm_address( explode( ',', (string) $p->address )[0] );
+			if ( '' !== $a && ( $a === $street || false !== strpos( $street, $a ) || false !== strpos( $a, $street ) ) ) {
+				return $p;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Everything already on file for an address: violations linked to the matching unit, plus violations whose title
+	 * names the street (filed before the unit existed). Open ones first.
+	 */
+	public static function address_violations( WP_REST_Request $request ) {
+		global $wpdb;
+		$community = sanitize_text_field( (string) $request->get_param( 'community_id' ) );
+		$address   = sanitize_text_field( (string) $request->get_param( 'address' ) );
+		$names     = self::customer_names();
+		if ( ! isset( $names[ $community ] ) || '' === trim( $address ) ) {
+			return rest_ensure_response( array( 'matched' => false, 'violations' => array(), 'open_count' => 0 ) );
+		}
+		$unit   = self::find_unit( $community, $address );
+		$ids    = array();
+		$owners_at = array();
+		if ( $unit ) {
+			foreach ( (array) $wpdb->get_results( $wpdb->prepare( 'SELECT request_id, owners_snapshot FROM ' . self::t( 'unit_requests' ) . ' WHERE property_id = %d', $unit->id ) ) as $l ) { // phpcs:ignore WordPress.DB.PreparedSQL
+				$ids[ (int) $l->request_id ]       = true;
+				$owners_at[ (int) $l->request_id ] = (string) $l->owners_snapshot;
+			}
+		}
+		$kit = AJCore_Extensions::rest_toolkit();
+		$db  = isset( $kit['portal_db'] ) ? $kit['portal_db']() : null;
+		$tbl = $db ? $kit['portal_table']( 'aj_portal_service_requests' ) : '';
+		$street_raw = trim( explode( ',', $address )[0] );
+		if ( $db && '' !== $street_raw ) {
+			foreach ( (array) $db->get_col( $db->prepare( "SELECT id FROM `{$tbl}` WHERE stripe_customer_id = %s AND request_type = %s AND service_name LIKE %s", $community, AJCore_HOA_Workflows::VIOLATION, '%' . $db->esc_like( $street_raw ) . '%' ) ) as $rid ) { // phpcs:ignore WordPress.DB.PreparedSQL
+				$ids[ (int) $rid ] = true;
+			}
+		}
+		$out = array();
+		if ( $db && $ids ) {
+			$in     = implode( ',', array_map( 'intval', array_keys( $ids ) ) );
+			$labels = class_exists( 'AJForms_Admin' ) ? ( AJForms_Admin::$instance ? AJForms_Admin::$instance : new AJForms_Admin() )->get_service_status_labels_for_ops() : array();
+			foreach ( (array) $db->get_results( "SELECT id, service_request_number, service_name, service_status, created_at FROM `{$tbl}` WHERE id IN ({$in}) ORDER BY id DESC" ) as $r ) { // phpcs:ignore WordPress.DB.PreparedSQL
+				$st    = '' !== (string) $r->service_status ? (string) $r->service_status : 'new';
+				$out[] = array(
+					'request_id'     => (int) $r->id,
+					'number'         => (string) $r->service_request_number,
+					'title'          => (string) $r->service_name,
+					'status'         => $st,
+					'status_label'   => (string) ( $labels[ $st ] ?? ucwords( str_replace( '_', ' ', $st ) ) ),
+					'created_at'     => (string) $r->created_at,
+					'owners_at_time' => $owners_at[ (int) $r->id ] ?? '',
+					'open'           => ! in_array( $st, array( 'completed', 'cancelled' ), true ),
+				);
+			}
+			usort( $out, function ( $a, $b ) {
+				return ( (int) $b['open'] <=> (int) $a['open'] ) ?: ( $b['request_id'] <=> $a['request_id'] );
+			} );
+		}
+		$owner_names = array();
+		if ( $unit ) {
+			$owner_names = (array) $wpdb->get_col( $wpdb->prepare( 'SELECT owner_name FROM ' . self::t( 'owners' ) . ' WHERE property_id = %d AND end_date IS NULL ORDER BY id', $unit->id ) ); // phpcs:ignore WordPress.DB.PreparedSQL
+		}
+		return rest_ensure_response( array(
+			'matched'    => (bool) $unit,
+			'unit_id'    => $unit ? (int) $unit->id : null,
+			'unit'       => $unit ? (string) $unit->unit : '',
+			'owners'     => array_values( $owner_names ),
+			'violations' => $out,
+			'open_count' => count( array_filter( $out, function ( $v ) {
+				return $v['open'];
+			} ) ),
+		) );
+	}
+
 	private static function norm_address( $a ) {
 		return trim( preg_replace( '/\s+/', ' ', preg_replace( '/[^a-z0-9 ]+/', ' ', strtolower( (string) $a ) ) ) );
 	}
@@ -250,10 +335,27 @@ class AJCore_HOA_Rest {
 		if ( ! isset( $names[ $community ] ) ) {
 			return new WP_Error( 'bad_request', 'Choose a community.', array( 'status' => 400 ) );
 		}
+		// Idempotency: the app sends one client_request_id per submission. add_option() is atomic, so a double tap or a
+		// retry that arrives while the first is still running gets the first result back instead of a second request.
+		$cid = sanitize_key( (string) $request->get_param( 'client_request_id' ) );
+		if ( '' !== $cid ) {
+			$opt = 'ajcore_hoa_insp_' . substr( $cid, 0, 40 );
+			if ( ! add_option( $opt, 'pending', '', 'no' ) ) {
+				$prev = json_decode( (string) get_option( $opt ), true );
+				return rest_ensure_response( is_array( $prev ) ? array_merge( $prev, array( 'duplicate' => true ) ) : array( 'success' => true, 'duplicate' => true, 'request_id' => 0, 'unit_id' => null, 'unit' => '', 'photo_url' => '' ) );
+			}
+		}
+		$release = function () use ( $cid ) {
+			if ( '' !== $cid ) {
+				delete_option( 'ajcore_hoa_insp_' . substr( $cid, 0, 40 ) ); // failed: let a retry through
+			}
+		};
 		if ( '' === $type ) {
+			$release();
 			return new WP_Error( 'bad_request', 'Choose a violation type.', array( 'status' => 400 ) );
 		}
 		if ( ! class_exists( 'AJForms' ) || ! AJForms::$instance ) {
+			$release();
 			return new WP_Error( 'unavailable', 'AJ Core is not ready.', array( 'status' => 500 ) );
 		}
 
@@ -263,6 +365,7 @@ class AJCore_HOA_Rest {
 		if ( ! empty( $files['photo']['tmp_name'] ) ) {
 			$check = wp_check_filetype( (string) $files['photo']['name'] );
 			if ( 0 !== strpos( (string) $check['type'], 'image/' ) ) {
+				$release();
 				return new WP_Error( 'bad_request', 'The photo must be an image.', array( 'status' => 400 ) );
 			}
 			require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -276,17 +379,7 @@ class AJCore_HOA_Rest {
 		}
 
 		// Unit whose stored address matches the street the photo was taken at.
-		$unit    = null;
-		$street  = self::norm_address( explode( ',', $address )[0] );
-		if ( '' !== $street ) {
-			foreach ( (array) $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM ' . self::t( 'properties' ) . " WHERE community_id = %s AND address <> ''", $community ) ) as $p ) { // phpcs:ignore WordPress.DB.PreparedSQL
-				$a = self::norm_address( explode( ',', (string) $p->address )[0] );
-				if ( '' !== $a && ( $a === $street || false !== strpos( $street, $a ) || false !== strpos( $a, $street ) ) ) {
-					$unit = $p;
-					break;
-				}
-			}
-		}
+		$unit = self::find_unit( $community, $address );
 		$owners = '';
 		if ( $unit ) {
 			$owners = implode( ', ', (array) $wpdb->get_col( $wpdb->prepare( 'SELECT owner_name FROM ' . self::t( 'owners' ) . ' WHERE property_id = %d AND end_date IS NULL ORDER BY id', $unit->id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL
@@ -309,6 +402,7 @@ class AJCore_HOA_Rest {
 		$where = $unit ? 'Unit ' . $unit->unit : ( '' !== $address ? explode( ',', $address )[0] : $names[ $community ] );
 		$res   = AJForms::$instance->api_create_staff_service_request( $community, 'Violation, ' . $where . ': ' . $type, AJCore_HOA_Workflows::VIOLATION, implode( "\n", $lines ) );
 		if ( is_wp_error( $res ) ) {
+			$release();
 			return $res;
 		}
 		if ( $unit && ! empty( $res['id'] ) ) {
@@ -317,6 +411,10 @@ class AJCore_HOA_Rest {
 				$wpdb->insert( self::t( 'unit_requests' ), array( 'property_id' => (int) $unit->id, 'request_id' => (int) $res['id'], 'owners_snapshot' => $owners, 'created_at' => current_time( 'mysql' ) ) );
 			}
 		}
-		return rest_ensure_response( array( 'success' => true, 'request_id' => (int) ( $res['id'] ?? 0 ), 'unit_id' => $unit ? (int) $unit->id : null, 'unit' => $unit ? (string) $unit->unit : '', 'photo_url' => $photo_url ) );
+		$out = array( 'success' => true, 'request_id' => (int) ( $res['id'] ?? 0 ), 'unit_id' => $unit ? (int) $unit->id : null, 'unit' => $unit ? (string) $unit->unit : '', 'photo_url' => $photo_url );
+		if ( '' !== $cid ) {
+			update_option( 'ajcore_hoa_insp_' . substr( $cid, 0, 40 ), wp_json_encode( $out ), false );
+		}
+		return rest_ensure_response( $out );
 	}
 }
