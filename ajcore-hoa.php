@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       AJ Core HOA
  * Description:       Homeowners association extension for AJ Core. Requires the AJ Core plugin. Request workflows (violation; work order to invoice to accounts payable) are active; the rest is roadmap.
- * Version:           0.1.12
+ * Version:           0.1.13
  * Requires PHP:      7.4
  * Author:            IT Spector LLC
  * Author URI:        https://itspector.com
@@ -15,7 +15,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'AJCORE_HOA_VERSION', '0.1.12' );
+define( 'AJCORE_HOA_VERSION', '0.1.13' );
 // Lowest AJCore extension API this plugin works with (see AJCORE_EXTENSION_API in AJCore).
 define( 'AJCORE_HOA_MIN_EXTENSION_API', 27 );
 define( 'AJCORE_HOA_BASENAME', plugin_basename( __FILE__ ) );
@@ -25,6 +25,8 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-workflows.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-homeowners.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-rest.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-import.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-match.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-hoa-mail.php';
 
 /**
  * Plugins load alphabetically by path ("ajcore-hoa/" sorts before "ajcore/"), so AJCore isn't loaded yet
@@ -47,10 +49,15 @@ function ajcore_hoa_boot() {
 
 	// Mailbox sub-pipelines under Pipeline (engine in AJCore): one shared mailbox each, no filters.
 	add_filter( 'ajcore_mail_pipelines', static function ( $p ) {
-		$p['hoa_invoice']   = array( 'label' => __( 'Invoice', 'ajcore-hoa' ), 'module' => 'hoa_invoice', 'stages' => array( 'new' => 'New', 'approved' => 'Approved', 'paid' => 'Paid', 'ignored' => 'Ignored' ) );
-		$p['hoa_legal']     = array( 'label' => __( 'Legal', 'ajcore-hoa' ), 'module' => 'hoa_legal', 'stages' => array( 'new' => 'New', 'reviewing' => 'Reviewing', 'done' => 'Done', 'ignored' => 'Ignored' ) );
-		$p['hoa_closing']   = array( 'label' => __( 'Closing', 'ajcore-hoa' ), 'module' => 'hoa_closing', 'stages' => array( 'new' => 'New', 'in_progress' => 'In progress', 'done' => 'Done', 'ignored' => 'Ignored' ) );
-		$p['hoa_insurance'] = array( 'label' => __( 'Insurance', 'ajcore-hoa' ), 'module' => 'hoa_insurance', 'stages' => array( 'new' => 'New', 'reviewed' => 'Reviewed', 'done' => 'Done', 'ignored' => 'Ignored' ) );
+		$parser_v = (int) AJCore_HOA_Mail::VERSION;
+		// Invoice: vendor invoices for the communities. New > Verified (community and amount checked) > Approved (board / manager) > Paid. The Zoho label PAID marks it paid.
+		$p['hoa_invoice']   = array( 'label' => __( 'Invoice', 'ajcore-hoa' ), 'module' => 'hoa_invoice', 'stages' => array( 'new' => 'New', 'verified' => 'Verified', 'approved' => 'Approved', 'paid' => 'Paid', 'ignored' => 'Ignored' ), 'label_stages' => array( 'PAID' => 'paid' ), 'parser' => array( 'AJCore_HOA_Mail', 'parse_invoice' ), 'parser_v' => $parser_v );
+		// Legal: attorney and court mail (collections, liens, enforcement, court notices).
+		$p['hoa_legal']     = array( 'label' => __( 'Legal', 'ajcore-hoa' ), 'module' => 'hoa_legal', 'stages' => array( 'new' => 'New', 'reviewing' => 'Reviewing', 'with_attorney' => 'With attorney', 'done' => 'Done', 'ignored' => 'Ignored' ), 'parser' => array( 'AJCore_HOA_Mail', 'parse_legal' ), 'parser_v' => $parser_v );
+		// Closing: resale certificates, payoff statements, ownership transfers.
+		$p['hoa_closing']   = array( 'label' => __( 'Closing', 'ajcore-hoa' ), 'module' => 'hoa_closing', 'stages' => array( 'new' => 'New', 'in_progress' => 'In progress', 'docs_sent' => 'Documents sent', 'done' => 'Done', 'ignored' => 'Ignored' ), 'parser' => array( 'AJCore_HOA_Mail', 'parse_closing' ), 'parser_v' => $parser_v );
+		// Insurance: master policies, vendor certificates, claims.
+		$p['hoa_insurance'] = array( 'label' => __( 'Insurance', 'ajcore-hoa' ), 'module' => 'hoa_insurance', 'stages' => array( 'new' => 'New', 'reviewed' => 'Reviewed', 'done' => 'Done', 'ignored' => 'Ignored' ), 'parser' => array( 'AJCore_HOA_Mail', 'parse_insurance' ), 'parser_v' => $parser_v );
 		return $p;
 	} );
 

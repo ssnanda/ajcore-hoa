@@ -63,6 +63,11 @@ class AJCore_HOA_Rest {
 	}
 
 	/** id => name, from AJ Core's customer list (labels may carry the email in brackets). */
+	/** id => name of the communities (used by the mailbox parsers). */
+	public static function community_names() {
+		return self::customer_names();
+	}
+
 	private static function customer_names() {
 		if ( ! class_exists( 'AJForms_Admin' ) ) {
 			return array();
